@@ -56,12 +56,43 @@
 
     <!-- תוכן העמוד -->    
     <div class="cellar-container" style="margin-top: 30px;">
-        
+                
         <div class="cellar-header">
             <h1 id="cellar-title">My Cellar</h1>
             <p>Your personal wine collection</p>
+            
+            <div class="cellar-toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search by name...">
+                </div>
+
+                <div class="filter-dropdowns">
+                    <div class="dropdown">
+                        <button class="chip dropdown-toggle" data-bs-toggle="dropdown" id="wineryBtn">Winery</button>
+                        <ul class="dropdown-menu" id="wineryDropdown">
+                            <li><a class="dropdown-item" href="#" data-value="all">All Wineries</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="dropdown">
+                        <button class="chip dropdown-toggle" data-bs-toggle="dropdown" id="yearBtn">Year</button>
+                        <ul class="dropdown-menu" id="yearDropdown">
+                            <li><a class="dropdown-item" href="#" data-value="all">All Years</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="filter-chips">
+                    <button class="chip active" data-type="all">All</button>
+                    <button class="chip" data-type="red">Red</button>
+                    <button class="chip" data-type="white">White</button>
+                    <button class="chip" data-type="rose">Rose</button>
+                </div>
+            </div>
             <button class="btn-back" onclick="window.location.href='arena.html'">Back to Arena</button>
         </div>
+
 
         <!-- כשאין יינות שמורים -->
         <div class="empty-state" id="empty-state">
