@@ -1,4 +1,3 @@
-
 console.log("Wineder Script Loaded");
 
 
@@ -56,6 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateHeader = () => {
         // מחפשים את האזור בראש הדף שבו אמור להופיע השם או כפתור ההתחברות
         const userArea = document.getElementById('userArea');
+        const getStartedBtn = document.getElementById('getStartedBtn'); // התוספת שלי
+        
         if (!userArea) return;// אם האזור הזה לא קיים בדף הנוכחי, יוצאים ולא עושים כלום
 
         // בודקים בזיכרון של הדפדפן האם המשתמש מחובר על ידי בדיקת השם
@@ -68,9 +69,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="btn btn-sm btn-outline-secondary" onclick="logout()" style="border-radius: 20px;">
                     Logout <i class="fas fa-sign-out-alt"></i>
                 </button>`;
+                
+            // נעלים את כפתור Get Started אם המשתמש מחובר
+            if (getStartedBtn) {
+                getStartedBtn.style.display = 'none';
+            }
+                
         // אם לא, נציג כפתור התחברות שמוביל לדף התחברות
         } else {
             userArea.innerHTML = `<a class="btn btn-outline-gold" href="login.html" style="color: #C68E58; border: 1px solid #C68E58; border-radius: 20px; padding: 5px 15px; text-decoration: none;">Login</a>`;
+            
+            // נוודא שכפתור Get Started מוצג אם המשתמש לא מחובר
+            if (getStartedBtn) {
+                getStartedBtn.style.display = 'inline-block';
+                getStartedBtn.href = 'login.html';
+            }
         }
     };
 
