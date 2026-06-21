@@ -5,6 +5,7 @@ console.log("Wineder Script Loaded");
 // בעת ההתנתקות מנקה את המשתמש מהזיכרון ומחזיר לדף הבית
 window.logout = function() {
     localStorage.removeItem('firstName');
+    localStorage.removeItem('currentUser'); // הוספנו את השורה הזו
     window.location.href = 'index.html'; 
 };
 
@@ -196,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (foundUser) {
                 localStorage.setItem('firstName', foundUser.firstName);
+                localStorage.setItem('currentUser', foundUser.email); // ודאי ש-'email' הוא השם הנכון של מאפיין האימייל באובייקט המשתמש שלך
                 window.showSuccessModal(`Welcome back, ${foundUser.firstName}!`, "Discover your next favorite vintage with a single swipe.");
             } else {
                 alert("Invalid email or password.");
@@ -232,6 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     }
+
+    
 
     // קריאה לפונקציה שמעדכנת את המסך בסיום טעינת כל ההגדרות
     updateHeader();
