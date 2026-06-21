@@ -5,7 +5,8 @@ console.log("Wineder Script Loaded");
 // בעת ההתנתקות מנקה את המשתמש מהזיכרון ומחזיר לדף הבית
 window.logout = function() {
     localStorage.removeItem('firstName');
-    window.location.href = 'index.html'; 
+    localStorage.removeItem('currentUser');
+    window.location.href = 'index.html';
 };
 
 // הצגת הודעת הצלחה בחלון קופץ
@@ -178,10 +179,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             saveUser({ firstName, lastName, email, password });
-            window.showSuccessModal("Cheers! Account Created", "Welcome to the Wineder family. You can now login to find your perfect vintage.");
+            // סימון המשתמש כמחובר מיד אחרי ההרשמה
+            localStorage.setItem('firstName', firstName);
+            localStorage.setItem('currentUser', email);
+
+            window.showSuccessModal(
+                "Cheers! Account Created",
+                "Welcome to Wineder! Let's find your perfect vintage."
+            );
+
             signupForm.reset();
-            
-            if (tabLogin) tabLogin.click();
         });
     }
 
@@ -196,7 +203,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (foundUser) {
                 localStorage.setItem('firstName', foundUser.firstName);
-                window.showSuccessModal(`Welcome back, ${foundUser.firstName}!`, "Discover your next favorite vintage with a single swipe.");
+                localStorage.setItem('currentUser', foundUser.email);
+
+                window.showSuccessModal(
+                    `Welcome back, ${foundUser.firstName}!`,
+                    "Discover your next favorite vintage with a single swipe."
+                );
             } else {
                 alert("Invalid email or password.");
             }
