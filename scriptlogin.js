@@ -1,7 +1,6 @@
 console.log("Wineder Script Loaded");
 
-
-//פונקציות גלובליות 
+// --- פונקציות גלובליות ---
 
 // בעת ההתנתקות מנקה את המשתמש מהזיכרון ומחזיר לדף הבית
 window.logout = function() {
@@ -11,14 +10,11 @@ window.logout = function() {
 
 // הצגת הודעת הצלחה בחלון קופץ
 window.showSuccessModal = function(title, message) {
-    // מוצאים בדף את האלמנטים שמרכיבים את חלון ההודעה
     const modal = document.getElementById('successModal');
     const titleLabel = document.getElementById('successTitle');
     const msgLabel = document.getElementById('successMessage');
 
-    // בודקים שהחלון קיים בדף לפני שמבצעים שינויים
     if (modal) {
-        // מעדכנים את הכותרת, את תוכן ההודעה בטקסט הרצוי ומציגים את החלון
         if (titleLabel) titleLabel.innerText = title;
         if (msgLabel) msgLabel.innerText = message;
         modal.style.display = 'flex';
@@ -26,7 +22,7 @@ window.showSuccessModal = function(title, message) {
 };
 
 // מעביר לזירת ההחלקות
-    window.redirectToindex = function() {
+window.redirectToindex = function() {
     window.location.href = 'arena.html'; 
 };
 
@@ -47,39 +43,84 @@ window.checkAccess = function(event, page) {
     }
 };
 
-//פעולות בזמן טעינת העמוד 
 
+// --- פעולות בזמן טעינת העמוד ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // נעכדן את שורת התפריט- נציג שם משתמש אם מחובר, או כפתור כניסה אם לא
+    // נעדכן את שורת התפריט והתצוגה בדף הבית לפי מצב ההתחברות
     const updateHeader = () => {
-        // מחפשים את האזור בראש הדף שבו אמור להופיע השם או כפתור ההתחברות
         const userArea = document.getElementById('userArea');
-        const getStartedBtn = document.getElementById('getStartedBtn'); // התוספת שלי
+        const getStartedBtn = document.getElementById('getStartedBtn'); 
         
-        if (!userArea) return;// אם האזור הזה לא קיים בדף הנוכחי, יוצאים ולא עושים כלום
+        if (!userArea) return;
 
-        // בודקים בזיכרון של הדפדפן האם המשתמש מחובר על ידי בדיקת השם
         const firstName = localStorage.getItem('firstName');
 
-        //אם המשתמש מחובר נציג הודעת וכפתור להתנתקות מהמערכת
         if (firstName) {
+            // -- משתמש מחובר --
             userArea.innerHTML = `
                 <span class="me-3 fw-bold" style="color: #B76E79;">Hello, ${firstName}!</span>
                 <button class="btn btn-sm btn-outline-secondary" onclick="logout()" style="border-radius: 20px;">
                     Logout <i class="fas fa-sign-out-alt"></i>
                 </button>`;
                 
-            // נעלים את כפתור Get Started אם המשתמש מחובר
             if (getStartedBtn) {
                 getStartedBtn.style.display = 'none';
             }
+
+            // === תוספת חדשה: ניהול פרופיל הטעם (Taste Profile) בעמוד הבית ===
+            const tasteProfileSection = document.getElementById('taste-profile-section');
+            const heroTitle = document.querySelector('.hero-text h1');
+            const heroSubtitle = document.querySelector('.hero-text p.lead');
+
+            if (heroTitle) heroTitle.textContent = `Welcome back, ${firstName}!`;
+            if (heroSubtitle) heroSubtitle.textContent = "Your personalized wine journey continues here. Check out your current taste profile below:";
+
+            if (tasteProfileSection) {
+                tasteProfileSection.classList.remove('d-none');
                 
-        // אם לא, נציג כפתור התחברות שמוביל לדף התחברות
+                // --- התיקון שלנו: שליפת המרתף לפי המפתח המדויק כמו ב-Arena ---
+                const currentUserForCellar = localStorage.getItem('currentUser');
+                const storageKey = `cellar_${currentUserForCellar}`;
+                const myCellar = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+                // 1. סה"כ יינות במרתף
+                document.getElementById('tp-total-wines').textContent = myCellar.length;
+
+                if (myCellar.length > 0) {
+                    // 2. חישוב ה-Vibe (איזה אחוז מהיינות הם מסוג מסוים)
+                    const typeCounts = myCellar.reduce((acc, wine) => {
+                        const type = (wine.type || "unknown").toLowerCase().replace('é', 'e');
+                        acc[type] = (acc[type] || 0) + 1;
+                        return acc;
+                    }, {});
+                    
+                    // מציאת הסוג הנפוץ ביותר
+                    const dominantType = Object.keys(typeCounts).reduce((a, b) => typeCounts[a] > typeCounts[b] ? a : b);
+                    
+                    // חישוב האחוז
+                    const percent = Math.round((typeCounts[dominantType] / myCellar.length) * 100);
+                    
+                    // הצגת הנתון (למשל: "60% Red")
+                    const formattedType = dominantType.charAt(0).toUpperCase() + dominantType.slice(1);
+                    document.getElementById('tp-vibe').textContent = `${percent}% ${formattedType}`;
+
+                    // 3. היין האחרון שהתווסף
+                    const lastWine = myCellar[myCellar.length - 1];
+                    document.getElementById('tp-latest-match').textContent = lastWine.name || "Unknown Wine";
+
+                } else {
+                    document.getElementById('tp-total-wines').textContent = "0";
+                    document.getElementById('tp-vibe').textContent = "No data yet";
+                    document.getElementById('tp-latest-match').textContent = "Swipe to match!";
+                }
+            }
+            // === סוף תוספת פרופיל הטעם ===
+
         } else {
+            // -- משתמש לא מחובר --
             userArea.innerHTML = `<a class="btn btn-outline-gold" href="login.html" style="color: #C68E58; border: 1px solid #C68E58; border-radius: 20px; padding: 5px 15px; text-decoration: none;">Login</a>`;
             
-            // נוודא שכפתור Get Started מוצג אם המשתמש לא מחובר
             if (getStartedBtn) {
                 getStartedBtn.style.display = 'inline-block';
                 getStartedBtn.href = 'login.html';
@@ -87,43 +128,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // פונקציה שמושכת את רשימת המשתמשים מהזיכרון של הדפדפן
+    // פונקציות ניהול משתמשים (הרשמה והתחברות)
     const getUsers = () => JSON.parse(localStorage.getItem('winederUsers')) || [];
-
-    // פונקציה שמוסיפה משתמש חדש לרשימה ושומרת אותה מחדש בזיכרון
     const saveUser = (user) => {
-        const users = getUsers(); // מביאים את הרשימה הקיימת
-        users.push(user);// מוסיפים את המשתמש החדש לסוף הרשימה
-        localStorage.setItem('winederUsers', JSON.stringify(users)); // הופכים את הרשימה לטקסט ושומרים אותה בזיכרון של הדפדפן
+        const users = getUsers();
+        users.push(user);
+        localStorage.setItem('winederUsers', JSON.stringify(users));
     };
 
-    // ניגשים לאלמנטים  של הטפסים והלשוניות בדף ההתחברות כדי לטפל באירועים שלהם
     const tabLogin = document.getElementById('tab-login');
     const tabSignup = document.getElementById('tab-signup');
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
 
-    // בודקים שהאלמנטים קיימים בדף כדי שלא תהיה שגיאה
     if (tabLogin && tabSignup) {
-
-        //  כשלוחצים על לשונית התחברות יקרה:
         tabLogin.addEventListener('click', () => {
-            tabLogin.classList.add('active'); // מדגיש את כפתור ההתחברות
-            tabSignup.classList.remove('active'); // מבטל את ההדגשה מהרשמה
-            loginForm.classList.add('active'); // מציג את טופס ההתחברות
-            signupForm.classList.remove('active');// מסתיר את טופס ההרשמה
+            tabLogin.classList.add('active'); 
+            tabSignup.classList.remove('active'); 
+            loginForm.classList.add('active'); 
+            signupForm.classList.remove('active');
         });
 
-        // כשלוחצים על לשונית התחברות יקרה:
         tabSignup.addEventListener('click', () => {
-            tabSignup.classList.add('active'); // מדגיש את כפתור ההרשמה
-            tabLogin.classList.remove('active');// מבטל את ההדגשה מהתחברות
-            signupForm.classList.add('active');// מציג את טופס ההרשמה
-            loginForm.classList.remove('active');// מסתיר את טופס ההתחברות
+            tabSignup.classList.add('active'); 
+            tabLogin.classList.remove('active');
+            signupForm.classList.add('active');
+            loginForm.classList.remove('active');
         });
     }
 
-    // נטפל בטופס הרשמה - נבדוק תקינות ונשמור משתמש חדש
     if (signupForm) {
         signupForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -133,23 +166,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById('signup-password').value;
             const ageCheck = document.getElementById('age-check').checked;
 
-            // מוודא שהמשתמש מילא את כל השדות ואישר שהוא מעל גיל 18
             if (!firstName || !lastName || !email || !password || !ageCheck) {
                 alert("Please fill all fields and confirm your age (18+).");
                 return;
             }
 
-            // בדיקה מול "מסד הנתונים" כדי לוודא שאין כבר משתמש עם אותו אימייל
             const users = getUsers();
             if (users.find(u => u.email === email)) {
                 alert("Email already exists.");
                 return;
             }
 
-            // שומר את המשתמש החדש במערכת
             saveUser({ firstName, lastName, email, password });
-            
-            // מציג הודעת הצלחה למשתמש, מאפס את הטופס ומעביר אותו אוטומטית ללשונית ההתחברות
             window.showSuccessModal("Cheers! Account Created", "Welcome to the Wineder family. You can now login to find your perfect vintage.");
             signupForm.reset();
             
@@ -157,28 +185,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    //נטפל בטופס ההתחברות - נאמת פרטים מול המשתמשים השמורים
     if (loginForm) {
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const emailInput = document.getElementById('login-email').value.trim();
             const passwordInput = document.getElementById('login-password').value;
 
-            // נחפש במאגר המשתמשים שלנו אם יש מישהו עם אימייל וסיסמא בדיוק כמו שהוזנו בטופס
             const users = getUsers();
             const foundUser = users.find(u => u.email === emailInput && u.password === passwordInput);
 
             if (foundUser) {
-                // אם נמצאה התאמה נשמור את שם המשתמש בזיכרון הדפדפן (כדי שישאר מחובר) ונציג הודעת הצלחה
                 localStorage.setItem('firstName', foundUser.firstName);
-                // הקפצת חלון הצלחה עם שם המשתמש
                 window.showSuccessModal(`Welcome back, ${foundUser.firstName}!`, "Discover your next favorite vintage with a single swipe.");
             } else {
-                // אם אין התאמה מקפיץ הודעת שגיאה
                 alert("Invalid email or password.");
             }
         });
     }
 
+    // --- אימות טופס אימייל מהיר (מתוך ה-Hero) ---
+    const emailForm = document.getElementById('hero-email-form');
+    const emailInput = document.getElementById('hero-email');
+    const feedback = document.getElementById('email-feedback');
+
+    if (emailForm) {
+        emailForm.addEventListener('submit', (e) => {
+            e.preventDefault(); 
+            const emailValue = emailInput.value;
+            
+            if (validateEmail(emailValue)) {
+                feedback.classList.add('d-none');
+                window.location.href = `login.html?email=${encodeURIComponent(emailValue)}`;
+            } else {
+                feedback.classList.remove('d-none');
+                emailInput.classList.add('is-invalid');
+            }
+        });
+
+        emailInput.addEventListener('input', () => {
+            emailInput.classList.remove('is-invalid');
+            feedback.classList.add('d-none');
+        });
+    }
+
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    // קריאה לפונקציה שמעדכנת את המסך בסיום טעינת כל ההגדרות
     updateHeader();
 });
