@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // שימי לב: הוספנו כאן את ה-onerror למקרה שהקישור שבור, שיציג את תמונת הדיפולט מהתיקייה שלך
             card.innerHTML = `
                 <button class="btn-remove" data-id="${wine.id}" title="Remove from cellar">🗑️</button>
-                <img src="${wine.image}" alt="${wine.name}" class="mini-wine-img" onerror="this.onerror=null; this.src='wine_images/default-wine.png';">
+                <img src="${wine.image}" alt="${wine.name}" class="mini-wine-img" onerror="this.onerror=null; this.src='public/images/wine_images/default-wine.png';">
                 <div class="mini-wine-info">
                     <h3 class="mini-wine-name">${wine.name}</h3>
                     <p class="mini-wine-winery">${wine.winery} | ${wine.year}</p>

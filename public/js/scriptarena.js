@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: "Red",
             sweetness: "Dry",
             desc: "A rich red wine with aromas of black berries, spices, and a hint of chocolate.",
-            image: "wine_images/syrah.jpg"
+            image: "../../images/wine_images/syrah.jpg"
         },
         {
             id: "wine_2",
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: "Red",
             sweetness: "Dry",
             desc: "Elegant and complex, featuring notes of ripe plum, forest floor, and vanilla.",
-            image: "wine_images/amasa.jpg"
+            image: "../../images/wine_images/amasa.jpg"
         },
         {
             id: "wine_3",
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: "Rosé",
             sweetness: "Dry",
             desc: "Crisp and refreshing with vibrant flavors of fresh strawberries and citrus.",
-            image: "wine_images/rose.jpg"
+            image: "../../images/wine_images/rose.jpg"
         },
         {
             id: "wine_4",
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: "White",
             sweetness: "Dry",
             desc: "Highly aromatic with sharp tropical fruit notes and a refreshing acidic finish.",
-            image: "wine_images/sauvignon.jpg"
+            image: "../../images/wine_images/sauvignon.jpg"
         },
         {
             id: "wine_5",
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: "White",
             sweetness: "Dry",
             desc: "Full-bodied white with layers of pear, melon, and rich buttery oak.",
-            image: "wine_images/chardonnay.jpg"
+            image: "../../images/wine_images/chardonnay.jpg"
         }
     ];
 
