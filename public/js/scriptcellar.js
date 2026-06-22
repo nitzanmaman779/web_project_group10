@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // שימוש בקישור שהוזן או בתמונת ברירת המחדל מהתיקייה שלך
         let finalImage = inputImage;
         if (!finalImage) {
-            finalImage = 'wine_images/default-wine.png'; 
+            finalImage = '../images/wine_images/default-wine.png'; 
         }
 
         const newWine = {

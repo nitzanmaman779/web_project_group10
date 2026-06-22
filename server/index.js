@@ -5,28 +5,59 @@ const path = require("path");
 const app = express();
 const port = 3000;
 
+// נתיבים קבועים לתיקיות
+const publicPath = path.join(__dirname, "../public");
+const htmlPath = path.join(publicPath, "html");
+
 // מאפשר לשרת לקרוא נתונים מטפסים ו-JSON
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // מאפשר לשרת להשתמש בקבצים מתוך תיקיית public
-app.use(express.static(path.join(__dirname, "../public")));
+// למשל: css, js, images
+app.use(express.static(publicPath));
 
 // עמוד הבית
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/html/index.html"));
+  res.sendFile(path.join(htmlPath, "index.html"));
 });
 
+// עמוד התחברות / הרשמה
 app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/html/login.html"));
+  res.sendFile(path.join(htmlPath, "login.html"));
 });
 
+// עמוד Arena
 app.get("/arena", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/html/arena.html"));
+  res.sendFile(path.join(htmlPath, "arena.html"));
 });
 
+// עמוד My Cellar
 app.get("/cellar", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/html/cellar.html"));
+  res.sendFile(path.join(htmlPath, "cellar.html"));
+});
+
+// תמיכה בקישורים הישנים מתוך קבצי ה-HTML
+// למשל href="login.html"
+app.get("/index.html", (req, res) => {
+  res.redirect("/");
+});
+
+app.get("/login.html", (req, res) => {
+  res.redirect("/login");
+});
+
+app.get("/arena.html", (req, res) => {
+  res.redirect("/arena");
+});
+
+app.get("/cellar.html", (req, res) => {
+  res.redirect("/cellar");
+});
+
+// אם כתובת לא קיימת
+app.use((req, res) => {
+  res.status(404).send("Page not found");
 });
 
 app.listen(port, () => {

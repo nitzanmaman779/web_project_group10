@@ -6,7 +6,7 @@ console.log("Wineder Script Loaded");
 window.logout = function() {
     localStorage.removeItem('firstName');
     localStorage.removeItem('currentUser'); // הוספנו את השורה הזו
-    window.location.href = 'index.html'; 
+    window.location.href = '../html/index.html'; 
 
 };
 
@@ -25,7 +25,7 @@ window.showSuccessModal = function(title, message) {
 
 // מעביר לזירת ההחלקות
 window.redirectToindex = function() {
-    window.location.href = 'arena.html'; 
+    window.location.href = '../html/arena.html'; 
 };
 
 // העלמת מסך ההתחברות מהמסך
