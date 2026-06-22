@@ -14,7 +14,7 @@
 
     <nav class="navbar navbar-expand-lg sticky-top w-100 position-absolute top-0">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="index.html">
+            <a class="navbar-brand d-flex align-items-center" href="/">
                 <img src="../images/logo.png" alt="Wineder Logo" width="50" height="50" class="me-2">
                 <span class="brand-name">WINEDER</span>
             </a>
@@ -33,15 +33,6 @@
             </div>
 
             <form id="editProfileForm" novalidate>
-                <div class="mb-3 text-start">
-                    <label for="editFirstName" class="form-label fw-bold small">First Name</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input type="text" class="form-control" id="editFirstName" required>
-                        <div class="invalid-feedback">Please enter your first name.</div>
-                    </div>
-                </div>
-
                 <div class="mb-3 text-start">
                     <label for="editFirstName" class="form-label fw-bold small">First Name</label>
                     <div class="input-group input-group-lg">
@@ -88,7 +79,7 @@
 
                 <div class="d-grid gap-2 mt-4">
                     <button type="submit" id="saveBtn" class="btn btn-rose text-white fw-bold py-2 shadow-sm d-none" style="background-color: var(--primary-rose); border: none;">Save Changes</button>
-                    <a href="index.html" class="btn btn-outline-secondary py-2">Cancel</a>
+                    <a href="/" class="btn btn-outline-secondary py-2">Cancel</a>
                 </div>
             </form>
         </div>
@@ -102,7 +93,7 @@
             <h3 style="color: var(--accent-gold); font-family: 'Playfair Display', serif; font-weight: 700;">Profile Updated!</h3>
             <p style="font-weight: 600; color: #333; margin-bottom: 20px;">Your changes have been saved successfully.</p>
             <div class="d-grid">
-                <button class="btn btn-rose text-white" onclick="window.location.href='../../index.html'">Back to Home</button>
+                <button class="btn btn-rose text-white" onclick="window.location.href='/'">Back to Home</button>
             </div>
         </div>
     </div>

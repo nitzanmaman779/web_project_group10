@@ -21,7 +21,7 @@
 
  <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="index.html">
+        <a class="navbar-brand d-flex align-items-center" href="/">
             <img src="../images/logo.png" alt="Wineder Logo" width="50" height="50" class="me-2">
             <span class="brand-name" style="font-family: 'Playfair Display', serif; font-weight: 700; color: #B76E79; letter-spacing: 2px;">WINEDER</span>
         </a>
@@ -32,9 +32,9 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link active" href="index.html">home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" onclick="checkAccess(event, 'arena.html')">The Arena</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" onclick="checkAccess(event, 'cellar.html')">My Cellar</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/">home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="checkAccess(event, '/arena')">The Arena</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="checkAccess(event, '/cellar')">My Cellar</a></li>
                 </ul>
             <div id="userArea" class="d-flex align-items-center"></div>
         </div>
@@ -48,7 +48,7 @@
                     <h1 class="display-3 fw-bold">Swipe. Match. Sip.</h1>
                     <p class="lead mb-4">Discover your perfect vintage with a single swipe. Wineder uses smart algorithms to pair you with wines you'll actually love.</p>
                     <div class="d-grid d-sm-flex justify-content-center justify-content-lg-start">
-                        <a href="login.html" id="getStartedBtn" class="btn btn-rose btn-lg px-5 py-3 shadow">Get Started</a>
+                        <a href="/login" id="getStartedBtn" class="btn btn-rose btn-lg px-5 py-3 shadow">Get Started</a>
                     </div>
                 </div>
                 <div class="col-lg-6 d-none d-lg-block">
@@ -99,7 +99,7 @@
             <h3 style="color: #C68E58; font-family: 'Playfair Display', serif;">Login Required</h3>
             <p>Please log in to access the Arena or your Cellar.</p>
             <div class="d-grid gap-2">
-                <button class="btn btn-rose" onclick="window.location.href='login.html'">Go to Login</button>
+                <button class="btn btn-rose" onclick="window.location.href='/login'">Go to Login</button>
                 <button class="btn btn-link text-muted" onclick="closeModal()">Close</button>
             </div>
         </div>
@@ -108,6 +108,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/scriptlogin.js"></script>
     <script src="../js/scripthome.js"></script>
-    <script src="../js/scripteditprofile.js"></script>
 </body>
 </html>

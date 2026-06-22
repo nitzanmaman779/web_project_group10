@@ -37,22 +37,9 @@ app.get("/cellar", (req, res) => {
   res.sendFile(path.join(htmlPath, "cellar.html"));
 });
 
-// תמיכה בקישורים הישנים מתוך קבצי ה-HTML
-// למשל href="login.html"
-app.get("/index.html", (req, res) => {
-  res.redirect("/");
-});
-
-app.get("/login.html", (req, res) => {
-  res.redirect("/login");
-});
-
-app.get("/arena.html", (req, res) => {
-  res.redirect("/arena");
-});
-
-app.get("/cellar.html", (req, res) => {
-  res.redirect("/cellar");
+// עמוד עריכת פרופיל
+app.get("/edit-profile", (req, res) => {
+  res.sendFile(path.join(htmlPath, "edit-profile.html"));
 });
 
 // אם כתובת לא קיימת

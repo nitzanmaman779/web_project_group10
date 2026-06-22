@@ -6,7 +6,7 @@ console.log("Wineder Script Loaded");
 window.logout = function() {
     localStorage.removeItem('firstName');
     localStorage.removeItem('currentUser'); // הוספנו את השורה הזו
-    window.location.href = '../html/index.html'; 
+    window.location.href = '/'; 
 
 };
 
@@ -25,7 +25,7 @@ window.showSuccessModal = function(title, message) {
 
 // מעביר לזירת ההחלקות
 window.redirectToindex = function() {
-    window.location.href = '../html/arena.html'; 
+    window.location.href = '/arena'; 
 };
 
 // העלמת מסך ההתחברות מהמסך
@@ -121,11 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             // -- משתמש לא מחובר --
-            userArea.innerHTML = `<a class="btn btn-outline-gold" href="login.html" style="color: #C68E58; border: 1px solid #C68E58; border-radius: 20px; padding: 5px 15px; text-decoration: none;">Login</a>`;
+            userArea.innerHTML = `<a class="btn btn-outline-gold" href="/login" style="color: #C68E58; border: 1px solid #C68E58; border-radius: 20px; padding: 5px 15px; text-decoration: none;">Login</a>`;
             
             if (getStartedBtn) {
                 getStartedBtn.style.display = 'inline-block';
-                getStartedBtn.href = 'public/html/login.html';
+                getStartedBtn.href = '/login';
             }
         }
     };
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (validateEmail(emailValue)) {
                 feedback.classList.add('d-none');
-                window.location.href = `login.html?email=${encodeURIComponent(emailValue)}`;
+                window.location.href = `/login?email=${encodeURIComponent(emailValue)}`;
             } else {
                 feedback.classList.remove('d-none');
                 emailInput.classList.add('is-invalid');

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // אם המשתמש מחובר - נציג את השם שלו, אייקון הגדרות לעריכה וכפתור התנתקות
             userArea.innerHTML = `
                 <span class="me-3 fw-bold" style="color: #B76E79;">Hi, ${firstName}</span>
-                <a href="edit-profile.html" class="text-secondary me-3" title="Edit Profile">
+                <a href="/edit-profile" class="text-secondary me-3" title="Edit Profile">
                     <i class="fas fa-cog fa-lg"></i>
                 </a>
                 <button class="btn btn-outline-danger btn-sm" onclick="logout()">Logout</button>
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // אם המשתמש לא מחובר - נציג כפתור התחברות
             userArea.innerHTML = `
-                <a href="login.html" class="btn btn-rose btn-sm shadow-sm">Login / Sign Up</a>
+                <a href="/login" class="btn btn-rose btn-sm shadow-sm">Login / Sign Up</a>
             `;
         }
     }
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // אם האימייל תקין הסתרת הודעת השגיאה
                 feedback.classList.add('d-none');
                 // העברה לדף ההרשמה עם האימייל כפרמטר
-                window.location.href = `login.html?email=${encodeURIComponent(emailValue)}`;
+                window.location.href = `/login?email=${encodeURIComponent(emailValue)}`;
             } else {
                 // אם האימייל לא תקין הצגת הודעת השגיאה וסימון השדה באדום
                 feedback.classList.remove('d-none');

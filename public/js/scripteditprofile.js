@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentFirstName = localStorage.getItem('firstName');
 
     if (!currentUser) {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
         return;
     }
 
