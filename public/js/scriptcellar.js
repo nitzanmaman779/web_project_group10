@@ -6,7 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyStateEl = document.getElementById('empty-state');
     const titleEl = document.getElementById('cellar-title');
     
-    if (currentUser) {
+    // שליפת השם הפרטי של המשתמש מהזיכרון
+    const firstName = localStorage.getItem('firstName');
+    if (firstName) {
+        // אם קיים שם פרטי - נציג אותו
+        titleEl.textContent = `${firstName}'s Cellar`;
+    } else if (currentUser) {
+        // גיבוי: אם מסיבה כלשהי אין שם, נשתמש בחלק מהאימייל כמו קודם
         const namePart = currentUser.split('@')[0];
         const capitalizedName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
         titleEl.textContent = `${capitalizedName}'s Cellar`;
