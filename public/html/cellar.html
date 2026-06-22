@@ -9,15 +9,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="stylecellar.css">
+    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/stylecellar.css">
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="index.html">
-                <img src="images/logo.png" alt="Wineder Logo" width="50" height="50" class="me-2">
+            <a class="navbar-brand d-flex align-items-center" href="public/html/index.html">
+                <img src="public/images/logo.png" alt="Wineder Logo" width="50" height="50" class="me-2">
                 <span class="brand-name" style="font-family: 'Playfair Display', serif; font-weight: 700; color: #B76E79; letter-spacing: 2px;">WINEDER</span>
             </a>
             
@@ -27,9 +27,9 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
-                    <li class="nav-item"><a class="nav-link" href="index.html">home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" onclick="checkAccess(event, 'arena.html')">The Arena</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="#" onclick="checkAccess(event, 'cellar.html')">My Cellar</a></li>
+                    <li class="nav-item"><a class="nav-link" href="public/html/index.html">home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="checkAccess(event, 'public/html/arena.html')">The Arena</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#" onclick="checkAccess(event, 'public/html/cellar.html')">My Cellar</a></li>
                 </ul>
 
 
@@ -45,7 +45,7 @@
             <h3 style="color: #C68E58; font-family: 'Playfair Display', serif;">Login Required</h3>
             <p>Please log in to access this page.</p>
             <div class="d-grid gap-2">
-                <button class="btn btn-rose" onclick="window.location.href='login.html'">Go to Login</button>
+                <button class="btn btn-rose" onclick="window.location.href='public/html/login.html'">Go to Login</button>
                 <button class="btn btn-link text-muted" onclick="closeModal()">Close</button>
             </div>
         </div>
@@ -96,7 +96,7 @@
         <div class="empty-state" id="empty-state">
             <h2>Your cellar is empty!</h2>
             <p>Go to the Swipe Arena to find some great wines to add here.</p>
-            <button class="btn-action" onclick="window.location.href='arena.html'">Find Wines</button>
+            <button class="btn-action" onclick="window.location.href='public/html/arena.html'">Find Wines</button>
         </div>
         
         <div class="cellar-grid" id="cellar-grid"></div>
@@ -147,7 +147,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="scriptlogin.js"></script>
-    <script src="scriptcellar.js"></script>
+    <script src="public/js/scriptlogin.js"></script>
+    <script src="public/js/scriptcellar.js"></script>
 </body>
 </html>

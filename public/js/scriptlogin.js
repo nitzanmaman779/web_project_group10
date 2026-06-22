@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (getStartedBtn) {
                 getStartedBtn.style.display = 'inline-block';
-                getStartedBtn.href = 'login.html';
+                getStartedBtn.href = 'public/html/login.html';
             }
         }
     };
