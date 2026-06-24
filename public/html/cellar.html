@@ -108,22 +108,22 @@
                 <form id="addWineForm" action="/custom-wine" method="POST" onsubmit="saveNewWine(event)">
                     
                     <div class="mb-2 text-start">
-                        <label class="small text-muted fw-bold">WINE NAME *</label>
+                        <label class="small text-muted fw-bold">Wine Name *</label>
                         <input type="text" id="newWineName" class="form-control" required placeholder="e.g., Cabernet Sauvignon" pattern="^[A-Za-z0-9\s\-,.'&]+$" title="Please use English characters only">
                     </div>
 
                     <div class="mb-2 text-start">
-                        <label class="small text-muted fw-bold">WINERY *</label>
+                        <label class="small text-muted fw-bold">Winery *</label>
                         <input type="text" id="newWineWinery" class="form-control" required placeholder="e.g., Chateau Margaux" pattern="^[A-Za-z0-9\s\-,.'&]+$" title="Please use English characters only">
                     </div>
 
                     <div class="mb-2 text-start">
-                        <label class="small text-muted fw-bold">YEAR *</label>
+                        <label class="small text-muted fw-bold">Year *</label>
                         <input type="number" id="newWineYear" class="form-control" required min="1800" max="2026" placeholder="e.g., 2021" oninput="if(this.value.length > 4) this.value = this.value.slice(0,4);">
                     </div>
 
                     <div class="mb-2 text-start">
-                        <label class="small text-muted fw-bold">WINE TYPE *</label>
+                        <label class="small text-muted fw-bold">Wine Type *</label>
                         <select id="newWineType" class="form-control" required>
                             <option value="Red">Red</option>
                             <option value="White">White</option>
@@ -132,7 +132,7 @@
                     </div>
 
                     <div class="mb-3 text-start">
-                        <label class="small text-muted fw-bold">WINE IMAGE URL (OPTIONAL)</label>
+                        <label class="small text-muted fw-bold">Wine Image URL (OPTIONAL)</label>
                         <input type="text" id="newWineImage" class="form-control" placeholder="Paste an image link from the web...">
                     </div>
                     

@@ -58,3 +58,25 @@ ADD COLUMN lastName VARCHAR(100) AFTER firstName;
 ALTER TABLE users
 ADD COLUMN wine_preferences TEXT AFTER lastName;
 
+INSERT INTO wines (id, name, winery, type, year, sweetness, image)
+VALUES
+(1, 'Yarden Syrah', 'Golan Heights Winery', 'Red', 2020, 'Dry', '../images/wine_images/syrah.jpg'),
+(2, 'Mt. Amasa', 'Yatir', 'Red', 2019, 'Dry', '../images/wine_images/amasa.jpg'),
+(3, 'Galil Mountain Rosé', 'Galil Mountain', 'Rosé', 2022, 'Dry', '../images/wine_images/rose.jpg'),
+(4, 'Sauvignon Blanc', 'Pelter', 'White', 2021, 'Dry','../images/wine_images/sauvignon.jpg'),
+(5, 'Yarden Chardonnay', 'Golan Heights Winery', 'White', 2021, 'Dry', '../images/wine_images/chardonnay.jpg'),
+(6, 'Rose', 'Pelter', 'Rose', 2025, 'Dry', '../images/wine_images/rose_pelter_rose_2025.jpg'),
+(7, 'Cabernet Shiraz', 'Pelter', 'Red', 2024, 'Dry', '../images/wine_images/cabernetShiraz_pelter_red_2024.jpg'),
+(8, 'Gewurztraminer', 'Pelter', 'White', 2024, 'Dry', '../images/wine_images/gewurztraminer_pelter_white_2024.jpg'),
+(9, 'Chardonnay', 'Matar', 'White', 2025, 'Dry', '../images/wine_images/chardonnay_matar_white_2025.jpg'),
+(10, 'Cabernet Sauvignon', 'Matar', 'Red', 2023, 'Dry', '../images/wine_images/cabernetSauvignon_matar_red_2023.jpg'),
+(11, 'Blanc de noir - Sparkling', 'Matar', 'White', 2023, 'Dry', '../images/wine_images/blancDeNoir_matar_white_2023.jpg'),
+(12, 'Rose', 'Teperberg', 'Rose', 2023, 'Dry', '../images/wine_images/rose_teperberg_rise_2023.jpg'),
+(13, 'Malbec', 'Teperberg', 'Red', 2020, 'Dry', '../images/wine_images/malbec_teperberg_red_2020.jpg'),
+(14, 'Merlot', 'Teperberg', 'Red', 2020, 'Dry', '../images/wine_images/merlot_teperberg_red_2020.jpg'),
+(15, 'Cabernet Sauvignon', 'Teperberg', 'Red', 2020, 'Dry', '../images/wine_images/cabernetSauvignon_teperberg_red_2020.jpg'),
+(16, 'Shiraz', 'Teperberg', 'Red', 2020, 'Dry', '../images/wine_images/shiraz_teperberg_red_2020.jpg'),
+(17, 'Sauvignon Blanc', 'Shvo Vineyards', 'White', 2025, 'Dry', '../images/wine_images/sauvignonBlanc_shvo_white_2025.jpg'),
+(18, 'Rose', 'Shvo Vineyards', 'Rose', 2025, 'Dry', '../images/wine_images/rose_shvo_rose_2025.jpg'),
+(19, 'Sauvignon Blanc', 'MIDBAR', 'White', 2023, 'Dry', '../images/wine_images/sauvignonBlanc_midbar_white_2023.jpg'),
+(20, 'Chardonnay', 'MIDBAR', 'White', 2022, 'Dry', '../images/wine_images/chardonnay_midbar_white_2022.jpg');
