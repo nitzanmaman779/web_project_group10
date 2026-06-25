@@ -6,20 +6,22 @@ const db = require("./db");
 const app = express();
 const port = 3000;
 
+// הגדרת הנתיבים לתיקיות הקבצים הסטטיים ועמודי ה-HTML
 const publicPath = path.join(__dirname, "../public");
 const htmlPath = path.join(publicPath, "html");
 
+// הגדרות שמאפשרות לשרת לקרוא נתונים שמגיעים מהטפסים ומהבקשות בצד הלקוח
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(publicPath));
 
-// -------------------- הגדרות קבועות של הניקוד והדרגות --------------------
+// הגדרות קבועות של הניקוד והדרגות 
 const DAILY_GOAL = 5;
 const SWIPE_POINTS = 2;
 const DAILY_GOAL_BONUS = 50;
 const CUSTOM_WINE_POINTS = 50;
 
-// כל שינוי בדרגות צריך להתבצע כאן, כדי שהשרת יחשב את הדרגה באותה דרך בכל פעולה.
+// פונקציה שמחזירה את דרגת המשתמש לפי כמות הנקודות שלו
 function calculateLevel(points) {
   if (points >= 500) return "Master of Wine";
   if (points >= 300) return "Vintage Expert";
@@ -29,29 +31,34 @@ function calculateLevel(points) {
 }
 
 
-// -------------------- נתיבי עמודים --------------------
+//  נתיבי עמודים 
+
+// כל נתיב מחזיר עמוד HTML מתאים מתוך תיקיית public/html
 app.get("/", (req, res) => res.sendFile(path.join(htmlPath, "index.html")));
 app.get("/login", (req, res) => res.sendFile(path.join(htmlPath, "login.html")));
 app.get("/arena", (req, res) => res.sendFile(path.join(htmlPath, "arena.html")));
 app.get("/cellar", (req, res) => res.sendFile(path.join(htmlPath, "cellar.html")));
 app.get("/edit-profile", (req, res) => res.sendFile(path.join(htmlPath, "edit-profile.html")));
 
-// -------------------- נתיבים שעובדים מול מסד הנתונים --------------------
-// יצירת משתמש חדש עם ניקוד התחלתי ודרגה התחלתית.
+// נתיבים שעובדים מול מסד הנתונים 
+// יצירת משתמש חדש עם פרטים בסיסיים, העדפות יין ונתוני ניקוד התחלתיים
 app.post("/signup", (req, res) => {
   const { firstName, lastName, email, password, winePreferences } = req.body;
   if (!firstName || !lastName || !email || !password) return res.status(400).json({ message: "Please fill all required fields." });
   
+    // אם המשתמש בחר כמה העדפות יין, שומרים אותן כמחרוזת אחת במסד הנתונים
   const preferencesText = Array.isArray(winePreferences) ? winePreferences.join(",") : "";
   const sql = `INSERT INTO users (email, password, firstName, lastName, wine_preferences, points, level, streak, daily_swipes_count, last_active_date) VALUES (?, ?, ?, ?, ?, 0, 'Casual Sipper', 0, 0, NULL)`;
 
   db.query(sql, [email, password, firstName, lastName, preferencesText], (err, result) => {
     if (err) return res.status(500).json({ message: err.code === "ER_DUP_ENTRY" ? "Email already exists." : "Error creating user." });
+    // החזרת פרטי המשתמש לצד הלקוח כדי לשמור אותם בדפדפן לאחר הרשמה
     res.json({ message: "User created successfully", user: { id: result.insertId, firstName, lastName, email, winePreferences: preferencesText, points: 0, level: "Casual Sipper", streak: 0, dailySwipesCount: 0 } });
   });
 });
 
-// התחברות משתמש קיים והחזרת הנתונים שצריך לשמור בדפדפן.
+
+// התחברות משתמש קיים לפי אימייל וסיסמה
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   db.query(`SELECT * FROM users WHERE email = ? AND password = ?`, [email, password], (err, results) => {
@@ -61,6 +68,7 @@ app.post("/login", (req, res) => {
   });
 });
 
+// שליפת כל היינות הקיימים במערכת
 app.get("/wines", (req, res) => {
   db.query("SELECT * FROM wines", (err, results) => {
     if (err) return res.status(500).json({ message: "Error getting wines." });
@@ -68,7 +76,7 @@ app.get("/wines", (req, res) => {
   });
 });
 
-// שליפת יינות לארנה (מסנן החוצה יינות שכבר קיימים במרתף של המשתמש)
+// שליפת יינות לארנה, בלי יינות שכבר נמצאים במרתף של המשתמש
 app.get("/arena-wines", (req, res) => {
   const userEmail = req.query.email;
   
@@ -76,7 +84,6 @@ app.get("/arena-wines", (req, res) => {
     return res.status(400).json({ message: "Email is required" });
   }
 
-  // השאילתה מושכת רק יינות שה-ID שלהם לא מופיע בטבלת המרתף תחת האימייל של המשתמש
   const sql = `
     SELECT * FROM wines 
     WHERE id NOT IN (
@@ -94,9 +101,10 @@ app.get("/arena-wines", (req, res) => {
   });
 });
 
-// שליפת כל היינות של משתמש מסוים: גם יינות רגילים וגם יינות שהמשתמש הוסיף בעצמו.
+// שליפת כל היינות במרתף של משתמש מסוים: יינות רגילים ויינות אישיים
 app.get("/cellar/:email", (req, res) => {
   const userEmail = req.params.email;
+  // UNION ALL מחבר בין יינות מטבלת wines לבין יינות שהמשתמש הוסיף בעצמו
   const sql = `
     SELECT wines.id AS id, wines.name, wines.winery, wines.type, wines.year, wines.image, 'regular' AS source
     FROM user_cellar JOIN wines ON user_cellar.wine_id = wines.id WHERE user_cellar.user_email = ?
@@ -110,6 +118,7 @@ app.get("/cellar/:email", (req, res) => {
   });
 });
 
+// הוספת יין רגיל למרתף של המשתמש
 app.post("/cellar", (req, res) => {
   const { userEmail, wineId } = req.body;
   db.query(`INSERT INTO user_cellar (user_email, wine_id) VALUES (?, ?)`, [userEmail, wineId], (err) => {
@@ -118,6 +127,7 @@ app.post("/cellar", (req, res) => {
   });
 });
 
+// מחיקת יין אישי שהמשתמש הוסיף בעצמו
 app.delete("/cellar", (req, res) => {
   const { userEmail, wineId } = req.body;
   db.query(`DELETE FROM user_cellar WHERE user_email = ? AND wine_id = ?`, [userEmail, wineId], (err) => {
@@ -125,7 +135,7 @@ app.delete("/cellar", (req, res) => {
     res.json({ message: "Wine removed." });
   });
 });
-
+// מחיקת יין אישי שהמשתמש הוסיף בעצמו
 app.delete("/custom-wine", (req, res) => {
   const { userEmail, wineId } = req.body;
   db.query(`DELETE FROM custom_wines WHERE user_email = ? AND id = ?`, [userEmail, wineId], (err) => {
@@ -134,7 +144,7 @@ app.delete("/custom-wine", (req, res) => {
   });
 });
 
-// הוספת יין אישי למרתף ועדכון הניקוד בהתאם
+// הוספת יין אישי למרתף ועדכון הניקוד של המשתמש
 app.post("/custom-wine", (req, res) => {
   const { userEmail, name, winery, type, year, image } = req.body;
   const sql = `INSERT INTO custom_wines (user_email, name, winery, type, year, image) VALUES (?, ?, ?, ?, ?, ?)`;
@@ -142,7 +152,7 @@ app.post("/custom-wine", (req, res) => {
   db.query(sql, [userEmail, name, winery, type, year, image || "../images/wine_images/default-wine.png"], (err, result) => {
     if (err) return res.status(500).json({ message: "Error adding custom wine." });
 
-    // אחרי שהיין נשמר, שולפים את הניקוד הקיים כדי להוסיף את הבונוס.
+    // לאחר שמירת היין, שולפים את נתוני המשתמש כדי לעדכן נקודות ודרגה
     db.query(`SELECT points, level FROM users WHERE email = ?`, [userEmail], (selectErr, users) => {
       if (selectErr || users.length === 0) {
         return res.status(500).json({ message: "Wine was added, but gamification stats could not be loaded." });
@@ -162,6 +172,7 @@ app.post("/custom-wine", (req, res) => {
             return res.status(500).json({ message: "Wine was added, but points could not be updated." });
           }
 
+          // החזרת היין החדש יחד עם נתוני הניקוד המעודכנים
           res.json({
             message: "Custom wine added.",
             wine: {
@@ -187,7 +198,9 @@ app.post("/custom-wine", (req, res) => {
   });
 });
 
-// -------------------- לוגיקת הניקוד המרכזית --------------------
+//  לוגיקת הניקוד המרכזית 
+
+// עדכון נקודות לאחר החלקה בארנה
 app.post("/swipe", (req, res) => {
   const { userEmail } = req.body;
 
@@ -199,7 +212,7 @@ app.post("/swipe", (req, res) => {
         return res.status(500).json({ message: "Error fetching user data." });
       }
 
-      // הנתונים האלו קובעים כמה נקודות להוסיף ואם הושלם יעד יומי.
+      // שליפת נתוני הגיימיפיקציה הנוכחיים של המשתמש
       let { points, level, streak, daily_swipes_count, last_active_date } = results[0];
 
       points = Number(points) || 0;
@@ -210,6 +223,7 @@ app.post("/swipe", (req, res) => {
       const todayObj = new Date();
       const formattedToday = todayObj.toISOString().split("T")[0];
 
+      // חישוב כמה ימים עברו מהפעילות האחרונה של המשתמש
       let diffDays = 0;
       if (last_active_date) {
         const lastDateObj = new Date(last_active_date);
@@ -220,7 +234,7 @@ app.post("/swipe", (req, res) => {
         diffDays = 999;
       }
 
-      // ניהול רצף ואיפוס: אם עבר יותר מיום אחד, או שאתמול לא הושלמו 5 החלקות - מאפסים
+      // אם עבר יום או יותר, בודקים האם צריך לאפס את הרצף ואת ספירת ההחלקות היומית
       if (diffDays >= 1) {
         if (diffDays > 1 || daily_swipes_count < DAILY_GOAL) {
           streak = 0;
@@ -228,19 +242,21 @@ app.post("/swipe", (req, res) => {
         daily_swipes_count = 0;
       }
 
+      // הוספת נקודות בסיסיות עבור כל החלקה
       points += SWIPE_POINTS;
       daily_swipes_count += 1;
 
       let bonusPoints = 0;
       let dailyGoalCompleted = false;
 
-      // כאשר מגיעים בדיוק לחמש החלקות, מוסיפים את הבונוס היומי ומעדכנים רצף.
+      // כאשר המשתמש מגיע ליעד היומי, מתווסף בונוס ומתעדכן הרצף
       if (daily_swipes_count === DAILY_GOAL) {
         dailyGoalCompleted = true;
         bonusPoints += DAILY_GOAL_BONUS;
         points += DAILY_GOAL_BONUS;
         streak += 1;
 
+        // כל רצף של 7 ימים מזכה בבונוס שבועי
         if (streak > 0 && streak % 7 === 0) {
           const weeks = streak / 7;
           const weeklyBonus = 250 * weeks;
@@ -259,6 +275,7 @@ app.post("/swipe", (req, res) => {
             return res.status(500).json({ message: "Error updating gamification stats." });
           }
 
+          // החזרת נתוני הניקוד המעודכנים לצד הלקוח
           res.json({
             points,
             level: newLevel,
@@ -276,7 +293,7 @@ app.post("/swipe", (req, res) => {
   );
 });
 
-// שליפת פרטי פרופיל למסך עריכת המשתמש.
+// שליפת פרטי המשתמש למסך עריכת הפרופיל
 app.get("/profile/:email", (req, res) => {
   db.query(`SELECT * FROM users WHERE email = ?`, [req.params.email], (err, results) => {
     if (err || results.length === 0) return res.status(404).json({ message: "User not found." });
@@ -284,7 +301,7 @@ app.get("/profile/:email", (req, res) => {
   });
 });
 
-// שמירת השינויים שהמשתמש ביצע בפרופיל ובהעדפות היין.
+// שמירת שינויים בפרטי המשתמש ובהעדפות היין
 app.put("/profile", (req, res) => {
   const { currentEmail, firstName, lastName, password, winePreferences } = req.body;
 
@@ -317,6 +334,7 @@ app.put("/profile", (req, res) => {
         return res.status(404).json({ message: "User not found." });
       }
 
+      // החזרת הפרטים המעודכנים כדי לעדכן את המידע בצד הלקוח
       res.json({
         message: "Profile updated successfully.",
         user: {
@@ -330,6 +348,8 @@ app.put("/profile", (req, res) => {
   );
 });
 
+// טיפול בכל נתיב שלא הוגדר במערכת
 app.use((req, res) => res.status(404).send("Page not found"));
 
+// הפעלת השרת על הפורט שהוגדר
 app.listen(port, () => console.log(`Server is running on port ${port}`));

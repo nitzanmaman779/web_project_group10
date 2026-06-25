@@ -1,7 +1,6 @@
 console.log("Wineder Script Loaded");
 
-// רשימת הנתונים שנשמרים בדפדפן עבור המשתמש המחובר.
-// כשמתנתקים או עוברים משתמש, מוחקים את כולם כדי שלא יישארו נתונים ממשתמש קודם.
+// רשימת הנתונים שנשמרים בדפדפן עבור המשתמש המחובר
 const WINEDER_STORAGE_KEYS = [
     'firstName',
     'lastName',
@@ -15,12 +14,12 @@ const WINEDER_STORAGE_KEYS = [
     'winePreferences'
 ];
 
-// ניקוי מלא של הנתונים המקומיים לפני התחברות או יציאה.
+// ניקוי כל נתוני המשתמש מהדפדפן, למשל בהתנתקות או בהחלפת משתמש
 window.clearWinederStorage = function () {
     WINEDER_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
 };
 
-// ספי הדרגות. הסדר חשוב כי ממנו מחושבת ההתקדמות לדרגה הבאה.
+// כמות הנקודות המינימלית הנדרשת לכל דרגה במערכת
 const WINEDER_LEVEL_MILESTONES = [
     { points: 0, label: 'Casual Sipper' },
     { points: 100, label: 'Curious Taster' },
@@ -29,17 +28,20 @@ const WINEDER_LEVEL_MILESTONES = [
     { points: 500, label: 'Master of Wine' }
 ];
 
+// יצירת שם מחלקת CSS לפי שם הדרגה
 window.getWinederLevelClass = function (level) {
     return 'level-' + String(level || 'Casual Sipper')
         .toLowerCase()
         .replaceAll(' ', '-');
 };
 
-// חישוב הטווח הנוכחי בסקאלה: מאיזו דרגה מתחילים ולאיזה יעד מתקדמים.
+// חישוב ההתקדמות של המשתמש בין הדרגה הנוכחית לדרגה הבאה
 window.getWinederLevelProgress = function (points) {
     const currentPoints = Math.max(0, Number(points) || 0);
     const maxPoints = WINEDER_LEVEL_MILESTONES[WINEDER_LEVEL_MILESTONES.length - 1].points;
+
     const nextMilestone = WINEDER_LEVEL_MILESTONES.find(item => currentPoints < item.points);
+
     const currentMilestone = [...WINEDER_LEVEL_MILESTONES]
         .reverse()
         .find(item => currentPoints >= item.points) || WINEDER_LEVEL_MILESTONES[0];
@@ -47,6 +49,7 @@ window.getWinederLevelProgress = function (points) {
     const segmentStart = currentMilestone.points;
     const segmentEnd = nextMilestone ? nextMilestone.points : maxPoints;
     const segmentSize = Math.max(segmentEnd - segmentStart, 1);
+
     const percent = nextMilestone
         ? Math.min(((currentPoints - segmentStart) / segmentSize) * 100, 100)
         : 100;
@@ -65,9 +68,10 @@ window.getWinederLevelProgress = function (points) {
     };
 };
 
-// בניית פס ההתקדמות שמופיע ליד הדרגה בתפריט.
+// בניית ה-HTML של פס ההתקדמות שמוצג בתפריט העליון
 window.buildWinederLevelProgressHtml = function (points) {
     const progress = window.getWinederLevelProgress(points);
+
     const nextText = progress.isMaxLevel
         ? 'Max level reached · 500 pts'
         : `${progress.pointsToNext} pts to ${progress.nextLevel}`;
@@ -89,58 +93,71 @@ window.buildWinederLevelProgressHtml = function (points) {
     `;
 };
 
-// עדכון הסקאלה אחרי שינוי בניקוד, בלי לרענן את כל העמוד.
+// עדכון פס ההתקדמות לאחר שינוי בניקוד, בלי לרענן את העמוד
 window.updateWinederLevelProgress = function (points) {
     const progress = window.getWinederLevelProgress(points);
+
     const fillEl = document.getElementById('level-scale-fill');
     const textEl = document.getElementById('level-next-text');
     const startEl = document.getElementById('level-scale-start');
     const endEl = document.getElementById('level-scale-end');
 
     if (fillEl) fillEl.style.width = `${progress.percent}%`;
+
     if (textEl) {
         textEl.textContent = progress.isMaxLevel
             ? 'Max level reached · 500 pts'
             : `${progress.pointsToNext} pts to ${progress.nextLevel}`;
     }
+
     if (startEl) startEl.textContent = progress.segmentStart;
     if (endEl) endEl.textContent = progress.segmentEnd;
-    if (window.applyWinederLevelPanelStyle) window.applyWinederLevelPanelStyle(progress.currentLevel);
+
+    // עדכון צבע תיבת הגיימיפיקציה לפי הדרגה הנוכחית
+    if (window.applyWinederLevelPanelStyle) {
+        window.applyWinederLevelPanelStyle(progress.currentLevel);
+    }
 };
 
-// התאמת צבע התג של הדרגה לפי הדרגה הנוכחית.
+// החלת צבע ועיצוב על תג הדרגה לפי הדרגה הנוכחית
 window.applyWinederLevelStyle = function (levelEl, level) {
     if (!levelEl) return;
 
     const levelClassNames = WINEDER_LEVEL_MILESTONES.map(item => window.getWinederLevelClass(item.label));
+
     levelEl.classList.add('level-badge');
     levelEl.classList.remove(...levelClassNames);
     levelEl.classList.add(window.getWinederLevelClass(level));
 };
 
+// יצירת שם מחלקת CSS עבור תיבת הגיימיפיקציה כולה
 window.getWinederLevelPanelClass = function (level) {
     return 'level-panel-' + String(level || 'Casual Sipper')
         .toLowerCase()
         .replaceAll(' ', '-');
 };
 
-// התאמת צבע המלבן כולו לפי הדרגה הנוכחית.
+// שינוי צבע תיבת הגיימיפיקציה לפי הדרגה הנוכחית
 window.applyWinederLevelPanelStyle = function (level) {
     const panel = document.querySelector('.gamification-panel');
     if (!panel) return;
 
     const panelClassNames = WINEDER_LEVEL_MILESTONES.map(item => window.getWinederLevelPanelClass(item.label));
+
     panel.classList.remove(...panelClassNames);
     panel.classList.add(window.getWinederLevelPanelClass(level));
 };
 
-// -------------------- פונקציות כלליות שמשמשות כמה עמודים --------------------
 
+//  פונקציות כלליות שמשמשות כמה עמודים 
+
+// התנתקות: ניקוי נתוני המשתמש וחזרה לעמוד הבית
 window.logout = function () {
     window.clearWinederStorage();
     window.location.href = '/';
 };
 
+// הצגת חלונית הצלחה לאחר התחברות או הרשמה
 window.showSuccessModal = function (title, message) {
     const modal = document.getElementById('successModal');
     const titleLabel = document.getElementById('successTitle');
@@ -153,15 +170,18 @@ window.showSuccessModal = function (title, message) {
     }
 };
 
+// מעבר לארנה לאחר סגירת הודעת הצלחה
 window.redirectToindex = function () {
     window.location.href = '/arena';
 };
 
+// סגירת חלונית ההתחברות
 window.closeModal = function () {
     const modal = document.getElementById('loginModal');
     if (modal) modal.style.display = 'none';
 };
 
+// בדיקת הרשאה לעמודים שדורשים משתמש מחובר
 window.checkAccess = function (event, page) {
     event.preventDefault();
 
@@ -178,11 +198,12 @@ window.checkAccess = function (event, page) {
     }
 };
 
-// -------------------- פעולות שמופעלות כשהעמוד נטען --------------------
+
+//  פעולות שמופעלות כשהעמוד נטען 
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // מצייר את אזור המשתמש בתפריט לפי מצב ההתחברות.
+    // עדכון אזור המשתמש בתפריט לפי מצב התחברות
     const updateHeader = () => {
         const userArea = document.getElementById('userArea');
         const getStartedBtn = document.getElementById('getStartedBtn');
@@ -192,11 +213,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const firstName = localStorage.getItem('firstName');
 
         if (firstName) {
-            // שולפים את נתוני הניקוד והדרגה שנשמרו אחרי ההתחברות
+            // שליפת נתוני הגיימיפיקציה שנשמרו בדפדפן
             const points = localStorage.getItem('points') || 0;
             const streak = localStorage.getItem('streak') || 0;
             const level = localStorage.getItem('level') || 'Casual Sipper';
 
+            // בניית תפריט למשתמש מחובר
             userArea.innerHTML = `
                 <div class="gamification-panel ${window.getWinederLevelPanelClass(level)} d-none d-md-flex align-items-center me-3 px-4 py-2 shadow-sm">
                     <div class="gamification-main-row">
@@ -211,7 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span id="nav-streak" class="fw-bold fs-5" style="color: #333;">${streak}</span>
                         </span>
                         <span class="fw-bold fs-5" style="color: #B76E79;" title="Level">
-                            <i class="fas fa-award fa-lg me-1"></i> <span id="nav-level" class="level-badge level-${window.getWinederLevelClass(level).replace('level-', '')}">${level}</span>
+                            <i class="fas fa-award fa-lg me-1"></i> 
+                            <span id="nav-level" class="level-badge level-${window.getWinederLevelClass(level).replace('level-', '')}">${level}</span>
                         </span>
                     </div>
                     ${window.buildWinederLevelProgressHtml(points)}
@@ -224,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="btn btn-outline-danger" onclick="logout()">Logout</button>
             `;
 
+            // אם המשתמש מחובר, מסתירים את כפתור ההתחלה בעמוד הבית
             if (getStartedBtn) {
                 getStartedBtn.style.display = 'none';
             }
@@ -231,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTasteProfileSection();
 
         } else {
+            // תפריט עבור משתמש לא מחובר
             userArea.innerHTML = `
                 <a href="/login" class="btn btn-rose btn-sm shadow-sm">Login / Sign Up</a>
             `;
@@ -242,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // בעמוד הבית מוצגים תקציר המרתף והטעם העיקרי של המשתמש.
+    // עדכון אזור פרופיל הטעם בעמוד הבית עבור משתמש מחובר
     const updateTasteProfileSection = async () => {
         const tasteProfileSection = document.getElementById('taste-profile-section');
 
@@ -255,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const heroSubtitle = document.querySelector('.hero-text p.lead');
 
         if (heroTitle) heroTitle.textContent = `Welcome back, ${firstName}!`;
+
         if (heroSubtitle) {
             heroSubtitle.textContent = "Your personalized wine journey continues here. Check out your current taste profile below:";
         }
@@ -262,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tasteProfileSection.classList.remove('d-none');
 
         try {
+            // שליפת המרתף של המשתמש כדי לחשב תקציר אישי
             const response = await fetch(`/cellar/${encodeURIComponent(currentUser)}`);
             const myCellar = await response.json();
 
@@ -277,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (totalWinesEl) totalWinesEl.textContent = myCellar.length;
 
             if (myCellar.length > 0) {
+                // ספירת סוגי היין כדי לזהות את סוג היין הדומיננטי של המשתמש
                 const typeCounts = myCellar.reduce((acc, wine) => {
                     const type = (wine.type || "unknown").toLowerCase().replace('é', 'e');
                     acc[type] = (acc[type] || 0) + 1;
@@ -292,10 +320,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (vibeEl) vibeEl.textContent = `${percent}% ${formattedType}`;
 
+                // הצגת היין האחרון שנוסף למרתף
                 const lastWine = myCellar[myCellar.length - 1];
                 if (latestMatchEl) latestMatchEl.textContent = lastWine.name || "Unknown Wine";
 
             } else {
+                // מצב שבו המשתמש עדיין לא הוסיף יינות למרתף
                 if (totalWinesEl) totalWinesEl.textContent = "0";
                 if (vibeEl) vibeEl.textContent = "No data yet";
                 if (latestMatchEl) latestMatchEl.textContent = "Swipe to match!";
@@ -311,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
 
-    // מעבר בין טופס התחברות לטופס הרשמה.
+    // מעבר בין טופס התחברות לטופס הרשמה
     if (tabLogin && tabSignup && loginForm && signupForm) {
         tabLogin.addEventListener('click', () => {
             tabLogin.classList.add('active');
@@ -328,25 +358,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // טיפול בהרשמה: בדיקות חובה, שמירת משתמש חדש והצגת הודעת הצלחה.
+    // טיפול בטופס הרשמה
     if (signupForm) {
-        // הודעות אימות טבעיות של הדפדפן לקבוצות ההעדפות.
+        // הודעות שיוצגו אם המשתמש לא בחר העדפות יין
         const preferenceValidationMessages = {
             'wine-color': 'Please choose at least one preferred wine color.',
             sweetness: 'Please choose at least one sweetness level.'
         };
 
+        // שליפת כל האפשרויות מתוך קבוצת העדפות מסוימת
         const getPreferenceInputs = (groupName) => {
             return Array.from(document.querySelectorAll(`input[name="${groupName}"]`));
         };
 
-        // בודק שבכל קבוצת העדפות נבחרה לפחות אפשרות אחת.
+        // בדיקה שבכל קבוצת העדפות נבחרה לפחות אפשרות אחת
         const validatePreferenceGroup = (groupName, shouldReport = false) => {
             const inputs = getPreferenceInputs(groupName);
             const firstInput = inputs[0];
+
             if (!firstInput) return true;
 
             const hasSelection = inputs.some(input => input.checked);
+
             firstInput.setCustomValidity(hasSelection ? '' : preferenceValidationMessages[groupName]);
 
             if (!hasSelection && shouldReport) {
@@ -357,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return hasSelection;
         };
 
+        // ניקוי הודעת השגיאה לאחר בחירת העדפה
         ['wine-color', 'sweetness'].forEach(groupName => {
             getPreferenceInputs(groupName).forEach(input => {
                 input.addEventListener('change', () => validatePreferenceGroup(groupName));
@@ -366,11 +400,13 @@ document.addEventListener('DOMContentLoaded', () => {
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            // בדיקת תקינות שדות רגילים בטופס
             if (!signupForm.checkValidity()) {
                 signupForm.reportValidity();
                 return;
             }
 
+            // בדיקת בחירת העדפות יין
             if (!validatePreferenceGroup('wine-color', true)) return;
             if (!validatePreferenceGroup('sweetness', true)) return;
 
@@ -380,13 +416,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById('signup-password').value;
 
             const winePreferences = [];
-            const selectedColors = Array.from(document.querySelectorAll('input[name="wine-color"]:checked')).map(input => input.value);
-            const selectedSweetness = Array.from(document.querySelectorAll('input[name="sweetness"]:checked')).map(input => input.value);
+
+            const selectedColors = Array.from(document.querySelectorAll('input[name="wine-color"]:checked'))
+                .map(input => input.value);
+
+            const selectedSweetness = Array.from(document.querySelectorAll('input[name="sweetness"]:checked'))
+                .map(input => input.value);
 
             selectedColors.forEach(value => winePreferences.push(value));
             selectedSweetness.forEach(value => winePreferences.push(value));
 
             try {
+                // שליחת פרטי ההרשמה לשרת
                 const response = await fetch("/signup", {
                     method: "POST",
                     headers: {
@@ -408,6 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                // שמירת נתוני המשתמש החדש בדפדפן
                 window.clearWinederStorage();
                 localStorage.setItem('firstName', data.user.firstName);
                 localStorage.setItem('lastName', data.user.lastName || '');
@@ -434,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // טיפול בהתחברות ושמירת הנתונים של המשתמש המחובר.
+    // טיפול בטופס התחברות
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -443,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const passwordInput = document.getElementById('login-password').value;
 
             try {
+                // שליחת פרטי ההתחברות לשרת
                 const response = await fetch("/login", {
                     method: "POST",
                     headers: {
@@ -461,6 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                // שמירת נתוני המשתמש המחובר בדפדפן
                 window.clearWinederStorage();
                 localStorage.setItem('firstName', data.user.firstName);
                 localStorage.setItem('lastName', data.user.lastName || '');
@@ -489,6 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailInput = document.getElementById('hero-email');
     const feedback = document.getElementById('email-feedback');
 
+    // טיפול בטופס המייל הקטן בעמוד הבית
     if (emailForm && emailInput && feedback) {
         emailForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -504,17 +549,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // הסרת סימון שגיאה כשהמשתמש מתחיל להקליד מחדש
         emailInput.addEventListener('input', () => {
             emailInput.classList.remove('is-invalid');
             feedback.classList.add('d-none');
         });
     }
 
-    // בדיקה בסיסית של מבנה כתובת המייל בטופס הקטן של עמוד הבית.
+    // בדיקה בסיסית שהמייל נראה במבנה תקין
     function validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     }
 
+    // הפעלת עדכון התפריט אחרי טעינת העמוד
     updateHeader();
 });
