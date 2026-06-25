@@ -30,6 +30,56 @@ function calculateLevel(points) {
   return "Casual Sipper";
 }
 
+// בדיקות כלליות שחוזרות בכמה נתיבים, כדי לא להכניס למסד הנתונים מידע לא תקין
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SIGNUP_WINE_COLORS = ["red", "white", "rose", "all"];
+const SIGNUP_SWEETNESS_LEVELS = ["dry", "semi-dry", "sweet", "all"];
+const CUSTOM_WINE_TYPES = ["Red", "White", "Rose"];
+const PROFILE_PREFERENCES = ["Red", "White", "Rosé", "Dry", "Semi-Dry", "Sweet", "red", "white", "rose", "all", "dry", "semi-dry", "sweet"];
+
+// פונקציות לשימוש ולידציות צד שרת 
+// בדיקה שהאימייל הוא טקסט ובמבנה תקין
+function isValidEmail(email) {
+  return typeof email === "string" && EMAIL_REGEX.test(email.trim());
+}
+
+//  מבדיקה שערך מסוים הוא מספר שלם וחיובי משמש לבדיקת מזהה של יין
+function isPositiveInteger(value) {
+  const numberValue = Number(value);
+  return Number.isInteger(numberValue) && numberValue > 0;
+}
+
+// בדיקה שכל הערכים שהתקבלו נמצאים ברשימת הערכים שמותר לקבל
+// משמש לבחירת העדפות יין או סוגי יין
+function hasOnlyAllowedValues(values, allowedValues) {
+  return Array.isArray(values) && values.every(value => allowedValues.includes(value));
+}
+
+// בדיקה שבהרשמה המשתמש בחר גם העדפת צבע יין וגם העדפת מתיקות
+function hasSignupColorAndSweetness(winePreferences) {
+  if (!Array.isArray(winePreferences)) return false;
+
+  const allCount = winePreferences.filter(value => value === "all").length;
+  const hasSpecificColor = winePreferences.some(value => ["red", "white", "rose"].includes(value));
+  const hasSpecificSweetness = winePreferences.some(value => ["dry", "semi-dry", "sweet"].includes(value));
+
+  // בחירה של צבע מסוים או בחירה כללית נחשבת כהעדפת צבע
+  const hasColorPreference = hasSpecificColor || allCount > 0;
+
+  // בחירה של מתיקות מסוימת או שימוש בבחירה כללית נחשבים כהעדפת מתיקות
+  const hasSweetnessPreference = hasSpecificSweetness || (hasSpecificColor && allCount > 0) || allCount > 1;
+
+  return hasColorPreference && hasSweetnessPreference;
+}
+
+// בדיקה ששנת היין היא שנה הגיונית
+// מאפשרים שנה מ-1800 ועד שנה אחת קדימה
+function isValidWineYear(year) {
+  const yearNumber = Number(year);
+  const maxYear = new Date().getFullYear() + 1;
+  return Number.isInteger(yearNumber) && yearNumber >= 1800 && yearNumber <= maxYear;
+}
+
 
 //  נתיבי עמודים 
 
@@ -44,16 +94,45 @@ app.get("/edit-profile", (req, res) => res.sendFile(path.join(htmlPath, "edit-pr
 // יצירת משתמש חדש עם פרטים בסיסיים, העדפות יין ונתוני ניקוד התחלתיים
 app.post("/signup", (req, res) => {
   const { firstName, lastName, email, password, winePreferences } = req.body;
-  if (!firstName || !lastName || !email || !password) return res.status(400).json({ message: "Please fill all required fields." });
-  
+  const cleanFirstName = typeof firstName === "string" ? firstName.trim() : "";
+  const cleanLastName = typeof lastName === "string" ? lastName.trim() : "";
+  const cleanEmail = typeof email === "string" ? email.trim() : "";
+
+  // ולידציה בצד השרת: לא יוצרים משתמש אם חסרים שדות בסיסיים
+  if (!cleanFirstName || !cleanLastName || !cleanEmail || !password) {
+    return res.status(400).json({ message: "Please fill all required fields." });
+  }
+
+  // ולידציה בצד השרת: בדיקת מבנה אימייל וסיסמה לפני שמירה במסד הנתונים
+  if (!isValidEmail(cleanEmail)) {
+    return res.status(400).json({ message: "Please enter a valid email address." });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters." });
+  }
+
+  // ולידציה בצד השרת: בהרשמה חייבים לבחור לפחות צבע יין אחד ולפחות רמת מתיקות אחת
+  if (!Array.isArray(winePreferences) || winePreferences.length === 0) {
+    return res.status(400).json({ message: "Please choose wine preferences." });
+  }
+
+  if (!hasOnlyAllowedValues(winePreferences, [...SIGNUP_WINE_COLORS, ...SIGNUP_SWEETNESS_LEVELS])) {
+    return res.status(400).json({ message: "Invalid wine preferences." });
+  }
+
+  if (!hasSignupColorAndSweetness(winePreferences)) {
+    return res.status(400).json({ message: "Please choose at least one wine color and one sweetness level." });
+  }
+
     // אם המשתמש בחר כמה העדפות יין, שומרים אותן כמחרוזת אחת במסד הנתונים
-  const preferencesText = Array.isArray(winePreferences) ? winePreferences.join(",") : "";
+  const preferencesText = winePreferences.join(",");
   const sql = `INSERT INTO users (email, password, firstName, lastName, wine_preferences, points, level, streak, daily_swipes_count, last_active_date) VALUES (?, ?, ?, ?, ?, 0, 'Casual Sipper', 0, 0, NULL)`;
 
-  db.query(sql, [email, password, firstName, lastName, preferencesText], (err, result) => {
+  db.query(sql, [cleanEmail, password, cleanFirstName, cleanLastName, preferencesText], (err, result) => {
     if (err) return res.status(500).json({ message: err.code === "ER_DUP_ENTRY" ? "Email already exists." : "Error creating user." });
     // החזרת פרטי המשתמש לצד הלקוח כדי לשמור אותם בדפדפן לאחר הרשמה
-    res.json({ message: "User created successfully", user: { id: result.insertId, firstName, lastName, email, winePreferences: preferencesText, points: 0, level: "Casual Sipper", streak: 0, dailySwipesCount: 0 } });
+    res.json({ message: "User created successfully", user: { id: result.insertId, firstName: cleanFirstName, lastName: cleanLastName, email: cleanEmail, winePreferences: preferencesText, points: 0, level: "Casual Sipper", streak: 0, dailySwipesCount: 0 } });
   });
 });
 
@@ -61,7 +140,18 @@ app.post("/signup", (req, res) => {
 // התחברות משתמש קיים לפי אימייל וסיסמה
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  db.query(`SELECT * FROM users WHERE email = ? AND password = ?`, [email, password], (err, results) => {
+  const cleanEmail = typeof email === "string" ? email.trim() : "";
+
+  // ולידציה בצד השרת: התחברות לא נבדקת מול מסד הנתונים אם חסרים אימייל או סיסמה
+  if (!cleanEmail || !password) {
+    return res.status(400).json({ message: "Email and password are required." });
+  }
+
+  if (!isValidEmail(cleanEmail)) {
+    return res.status(400).json({ message: "Please enter a valid email address." });
+  }
+
+  db.query(`SELECT * FROM users WHERE email = ? AND password = ?`, [cleanEmail, password], (err, results) => {
     if (err || results.length === 0) return res.status(401).json({ message: "Invalid email or password." });
     const user = results[0];
     res.json({ message: "Login successful", user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, winePreferences: user.wine_preferences || "", points: user.points, level: user.level, streak: user.streak, dailySwipesCount: user.daily_swipes_count, lastActiveDate: user.last_active_date } });
@@ -84,6 +174,11 @@ app.get("/arena-wines", (req, res) => {
     return res.status(400).json({ message: "Email is required" });
   }
 
+  // ולידציה בצד השרת: בודקים שהאימייל שהגיע בבקשה נראה כמו אימייל תקין
+  if (!isValidEmail(userEmail)) {
+    return res.status(400).json({ message: "Invalid email address." });
+  }
+
   const sql = `
     SELECT * FROM wines 
     WHERE id NOT IN (
@@ -104,6 +199,12 @@ app.get("/arena-wines", (req, res) => {
 // שליפת כל היינות במרתף של משתמש מסוים: יינות רגילים ויינות אישיים
 app.get("/cellar/:email", (req, res) => {
   const userEmail = req.params.email;
+
+  // ולידציה בצד השרת: לא שולפים מרתף אם האימייל בנתיב לא תקין
+  if (!isValidEmail(userEmail)) {
+    return res.status(400).json({ message: "Invalid email address." });
+  }
+
   // UNION ALL מחבר בין יינות מטבלת wines לבין יינות שהמשתמש הוסיף בעצמו
   const sql = `
     SELECT wines.id AS id, wines.name, wines.winery, wines.type, wines.year, wines.image, 'regular' AS source
@@ -121,6 +222,16 @@ app.get("/cellar/:email", (req, res) => {
 // הוספת יין רגיל למרתף של המשתמש
 app.post("/cellar", (req, res) => {
   const { userEmail, wineId } = req.body;
+
+  // ולידציה בצד השרת: הוספה למרתף דורשת משתמש תקין ומזהה יין תקין
+  if (!isValidEmail(userEmail)) {
+    return res.status(400).json({ message: "Invalid user email." });
+  }
+
+  if (!isPositiveInteger(wineId)) {
+    return res.status(400).json({ message: "Invalid wine id." });
+  }
+
   db.query(`INSERT INTO user_cellar (user_email, wine_id) VALUES (?, ?)`, [userEmail, wineId], (err) => {
     if (err) return res.status(500).json({ message: "Error adding wine." });
     res.json({ message: "Wine added to cellar successfully." });
@@ -130,6 +241,16 @@ app.post("/cellar", (req, res) => {
 // מחיקת יין אישי שהמשתמש הוסיף בעצמו
 app.delete("/cellar", (req, res) => {
   const { userEmail, wineId } = req.body;
+
+  // ולידציה בצד השרת: מחיקה מהמרתף מתבצעת רק עם אימייל ומזהה יין תקינים
+  if (!isValidEmail(userEmail)) {
+    return res.status(400).json({ message: "Invalid user email." });
+  }
+
+  if (!isPositiveInteger(wineId)) {
+    return res.status(400).json({ message: "Invalid wine id." });
+  }
+
   db.query(`DELETE FROM user_cellar WHERE user_email = ? AND wine_id = ?`, [userEmail, wineId], (err) => {
     if (err) return res.status(500).json({ message: "Error removing wine." });
     res.json({ message: "Wine removed." });
@@ -138,6 +259,16 @@ app.delete("/cellar", (req, res) => {
 // מחיקת יין אישי שהמשתמש הוסיף בעצמו
 app.delete("/custom-wine", (req, res) => {
   const { userEmail, wineId } = req.body;
+
+  // ולידציה בצד השרת: מחיקת יין אישי דורשת אימייל ומזהה יין תקינים
+  if (!isValidEmail(userEmail)) {
+    return res.status(400).json({ message: "Invalid user email." });
+  }
+
+  if (!isPositiveInteger(wineId)) {
+    return res.status(400).json({ message: "Invalid wine id." });
+  }
+
   db.query(`DELETE FROM custom_wines WHERE user_email = ? AND id = ?`, [userEmail, wineId], (err) => {
     if (err) return res.status(500).json({ message: "Error removing custom wine." });
     res.json({ message: "Custom wine removed." });
@@ -147,9 +278,29 @@ app.delete("/custom-wine", (req, res) => {
 // הוספת יין אישי למרתף ועדכון הניקוד של המשתמש
 app.post("/custom-wine", (req, res) => {
   const { userEmail, name, winery, type, year, image } = req.body;
+  const cleanName = typeof name === "string" ? name.trim() : "";
+  const cleanWinery = typeof winery === "string" ? winery.trim() : "";
+
+  // ולידציה בצד השרת: יין אישי חייב להגיע עם משתמש, שם יין, יקב, סוג ושנה תקינים
+  if (!isValidEmail(userEmail)) {
+    return res.status(400).json({ message: "Invalid user email." });
+  }
+
+  if (!cleanName || !cleanWinery) {
+    return res.status(400).json({ message: "Wine name and winery are required." });
+  }
+
+  if (!CUSTOM_WINE_TYPES.includes(type)) {
+    return res.status(400).json({ message: "Invalid wine type." });
+  }
+
+  if (!isValidWineYear(year)) {
+    return res.status(400).json({ message: "Invalid wine year." });
+  }
+
   const sql = `INSERT INTO custom_wines (user_email, name, winery, type, year, image) VALUES (?, ?, ?, ?, ?, ?)`;
 
-  db.query(sql, [userEmail, name, winery, type, year, image || "../images/wine_images/default-wine.png"], (err, result) => {
+  db.query(sql, [userEmail, cleanName, cleanWinery, type, Number(year), image || "../images/wine_images/default-wine.png"], (err, result) => {
     if (err) return res.status(500).json({ message: "Error adding custom wine." });
 
     // לאחר שמירת היין, שולפים את נתוני המשתמש כדי לעדכן נקודות ודרגה
@@ -177,10 +328,10 @@ app.post("/custom-wine", (req, res) => {
             message: "Custom wine added.",
             wine: {
               id: result.insertId,
-              name,
-              winery,
+              name: cleanName,
+              winery: cleanWinery,
               type,
-              year,
+              year: Number(year),
               image: image || "../images/wine_images/default-wine.png",
               source: "custom"
             },
@@ -203,6 +354,11 @@ app.post("/custom-wine", (req, res) => {
 // עדכון נקודות לאחר החלקה בארנה
 app.post("/swipe", (req, res) => {
   const { userEmail } = req.body;
+
+  // ולידציה בצד השרת: אי אפשר לעדכן ניקוד בלי לדעת לאיזה משתמש שייך הסוויפ
+  if (!isValidEmail(userEmail)) {
+    return res.status(400).json({ message: "Invalid user email." });
+  }
 
   db.query(
     `SELECT points, level, streak, daily_swipes_count, last_active_date FROM users WHERE email = ?`,
@@ -295,6 +451,11 @@ app.post("/swipe", (req, res) => {
 
 // שליפת פרטי המשתמש למסך עריכת הפרופיל
 app.get("/profile/:email", (req, res) => {
+  // ולידציה בצד השרת: לא שולפים פרופיל אם האימייל בנתיב לא תקין
+  if (!isValidEmail(req.params.email)) {
+    return res.status(400).json({ message: "Invalid email address." });
+  }
+
   db.query(`SELECT * FROM users WHERE email = ?`, [req.params.email], (err, results) => {
     if (err || results.length === 0) return res.status(404).json({ message: "User not found." });
     res.json(results[0]);
@@ -304,13 +465,25 @@ app.get("/profile/:email", (req, res) => {
 // שמירת שינויים בפרטי המשתמש ובהעדפות היין
 app.put("/profile", (req, res) => {
   const { currentEmail, firstName, lastName, password, winePreferences } = req.body;
+  const cleanFirstName = typeof firstName === "string" ? firstName.trim() : "";
+  const cleanLastName = typeof lastName === "string" ? lastName.trim() : "";
 
-  if (!currentEmail || !firstName || !password) {
+  // ולידציה בצד השרת: עדכון פרופיל דורש משתמש קיים, שם פרטי וסיסמה
+  if (!currentEmail || !cleanFirstName || !password) {
     return res.status(400).json({ message: "Missing required profile details." });
+  }
+
+  if (!isValidEmail(currentEmail)) {
+    return res.status(400).json({ message: "Invalid email address." });
   }
 
   if (password.length < 6) {
     return res.status(400).json({ message: "Password must be at least 6 characters." });
+  }
+
+  // ולידציה בצד השרת: אם נשלחו העדפות, בודקים שהן מתוך האפשרויות שקיימות באתר
+  if (winePreferences && !hasOnlyAllowedValues(winePreferences, PROFILE_PREFERENCES)) {
+    return res.status(400).json({ message: "Invalid wine preferences." });
   }
 
   const prefs = Array.isArray(winePreferences) ? winePreferences.join(",") : "";
@@ -323,7 +496,7 @@ app.put("/profile", (req, res) => {
 
   db.query(
     sql,
-    [firstName, lastName || "", password, prefs, currentEmail],
+    [cleanFirstName, cleanLastName || "", password, prefs, currentEmail],
     (err, result) => {
       if (err) {
         console.log("Profile update error:", err);
@@ -338,8 +511,8 @@ app.put("/profile", (req, res) => {
       res.json({
         message: "Profile updated successfully.",
         user: {
-          firstName,
-          lastName: lastName || "",
+          firstName: cleanFirstName,
+          lastName: cleanLastName || "",
           email: currentEmail,
           winePreferences: prefs
         }
