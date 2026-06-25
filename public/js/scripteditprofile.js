@@ -1,14 +1,14 @@
-// קובץ זה מטפל בעריכת פרטי המשתמש והעדפות היין שלו.
+// קובץ זה מטפל בעריכת פרטי המשתמש והעדפות היין שלו
 document.addEventListener('DOMContentLoaded', async () => {
     const currentUser = localStorage.getItem('currentUser');
 
-
+    // אם אין משתמש מחובר, אין גישה לעמוד עריכת הפרופיל
     if (!currentUser) {
         window.location.href = '/login';
         return;
     }
 
-
+    // שליפת האלמנטים המרכזיים מהטופס
     const editForm = document.getElementById('editProfileForm');
     const emailInput = document.getElementById('editEmail');
     const firstNameInput = document.getElementById('editFirstName');
@@ -18,17 +18,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const successModal = document.getElementById('editSuccessModal');
     const prefCheckboxes = document.querySelectorAll('.wine-pref');
 
-
-    // נשמר כדי לדעת אם המשתמש באמת שינה משהו בטופס.
+    // נשמר כדי לבדוק בהמשך אם המשתמש באמת שינה משהו בטופס
     let initialState = {};
 
-
-    // שליפת פרטי המשתמש מהשרת ומילוי הטופס בערכים הקיימים.
+    // שליפת פרטי המשתמש מהשרת ומילוי הטופס בערכים הקיימים
     const loadProfileFromServer = async () => {
         try {
             const response = await fetch(`/profile/${encodeURIComponent(currentUser)}`);
             const user = await response.json();
-
 
             if (!response.ok) {
                 alert(user.message || "Could not load profile.");
@@ -36,25 +33,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-
+            // מילוי שדות הפרופיל לפי הנתונים שהתקבלו מהשרת
             emailInput.value = user.email;
             firstNameInput.value = user.firstName || '';
             lastNameInput.value = user.lastName || '';
             passwordInput.value = user.password || '';
 
-
+            // המרת העדפות היין ממחרוזת לרשימה
             const savedPrefs = user.wine_preferences
                 ? user.wine_preferences.split(",")
                 : [];
 
-
+            // סימון ההעדפות שהמשתמש בחר בעבר
             prefCheckboxes.forEach(checkbox => {
                 checkbox.checked = savedPrefs.includes(checkbox.value);
             });
 
-
+            // שמירת המצב ההתחלתי של הטופס לצורך השוואה בהמשך
             initialState = getFormState();
-
 
         } catch (error) {
             console.log("Error loading profile:", error);
@@ -62,18 +58,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-
-    // איסוף מצב הטופס הנוכחי לצורך שמירה או בדיקת שינויים.
+    // איסוף מצב הטופס הנוכחי לצורך שמירה או בדיקת שינויים
     function getFormState() {
         const prefs = [];
-
 
         prefCheckboxes.forEach(cb => {
             if (cb.checked) {
                 prefs.push(cb.value);
             }
         });
-
 
         return {
             firstName: firstNameInput.value.trim(),
@@ -84,12 +77,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
-
-    // מציג את כפתור השמירה רק כאשר יש שינוי אמיתי בפרטים.
+    // הצגת כפתור השמירה רק אם המשתמש ביצע שינוי אמיתי בטופס
     function checkChanges() {
         const currentState = getFormState();
         const hasChanged = JSON.stringify(currentState) !== JSON.stringify(initialState);
-
 
         if (hasChanged) {
             saveBtn.classList.remove('d-none');
@@ -98,20 +89,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-
     if (editForm) {
+        // בדיקת שינויים בכל שינוי בטופס
         editForm.addEventListener('input', checkChanges);
         editForm.addEventListener('change', checkChanges);
 
-
-        // שמירת הפרופיל לאחר בדיקות תקינות בסיסיות.
+        // שמירת הפרופיל לאחר בדיקות תקינות בסיסיות
         editForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-
             let isValid = true;
 
-
+            // בדיקה ששם פרטי לא ריק
             if (firstNameInput.value.trim() === '') {
                 firstNameInput.classList.add('is-invalid');
                 isValid = false;
@@ -119,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 firstNameInput.classList.remove('is-invalid');
             }
 
-
+            // בדיקה בסיסית של תקינות כתובת המייל
             const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailReg.test(emailInput.value.trim())) {
                 emailInput.classList.add('is-invalid');
@@ -128,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 emailInput.classList.remove('is-invalid');
             }
 
-
+            // בדיקה שהסיסמה באורך מינימלי
             if (passwordInput.value.length < 6) {
                 passwordInput.classList.add('is-invalid');
                 isValid = false;
@@ -136,14 +125,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 passwordInput.classList.remove('is-invalid');
             }
 
-
             if (!isValid) return;
-
 
             const formState = getFormState();
 
-
             try {
+                // שליחת הנתונים המעודכנים לשרת
                 const response = await fetch('/profile', {
                     method: 'PUT',
                     headers: {
@@ -158,29 +145,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                     })
                 });
 
-
                 const data = await response.json();
-
 
                 if (!response.ok) {
                     alert(data.message || "Could not update profile.");
                     return;
                 }
 
-
+                // עדכון הנתונים שנשמרים בדפדפן לאחר שמירה מוצלחת
                 localStorage.setItem('firstName', data.user.firstName);
                 localStorage.setItem('lastName', data.user.lastName || '');
                 localStorage.setItem('winePreferences', data.user.winePreferences || '');
 
-
+                // עדכון המצב ההתחלתי החדש והסתרת כפתור השמירה
                 initialState = getFormState();
                 saveBtn.classList.add('d-none');
 
-
+                // הצגת הודעת הצלחה
                 if (successModal) {
                     successModal.style.display = 'flex';
                 }
-
 
             } catch (error) {
                 console.log("Error updating profile:", error);
@@ -189,10 +173,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-
-    // ניקוי סימון שגיאה כאשר המשתמש מתחיל לתקן את השדה.
+    // ניקוי סימון שגיאה כאשר המשתמש מתחיל לתקן את השדה
     const inputs = [firstNameInput, lastNameInput, emailInput, passwordInput];
-
 
     inputs.forEach(input => {
         if (input) {
@@ -200,26 +182,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-
     const togglePasswordBtn = document.getElementById('togglePassword');
 
-
+    // כפתור להצגה או הסתרה של הסיסמה
     if (togglePasswordBtn && passwordInput) {
         togglePasswordBtn.addEventListener('click', () => {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
 
-
+            // החלפת האייקון בהתאם למצב הסיסמה
             const icon = togglePasswordBtn.querySelector('i');
             icon.classList.toggle('fa-eye');
             icon.classList.toggle('fa-eye-slash');
         });
     }
 
-
+    // טעינת פרטי המשתמש בפועל לאחר שכל הפונקציות מוכנות
     await loadProfileFromServer();
 });
-
-
-
-
