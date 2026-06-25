@@ -1,12 +1,13 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
+    // בדיקה אם המשתמש מחובר, אחרת מפנים לעמוד ההתחברות
     const currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
         window.location.href = '/login';
         return;
     }
 
-    // מצב הארנה: רשימת היינות, יינות שנדחו ומיקום הכרטיס הנוכחי.
+    // מצב הארנה: רשימת היינות, יינות שנדחו ומיקום הכרטיס הנוכחי
     let winesToShow = [];
     let dislikedWines = [];
     let currentIndex = 0;
@@ -21,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnDislike = document.getElementById('btn-dislike');
     const emptyState = document.getElementById('empty-state');
 
-    // שמות מחלקות העיצוב של הדרגות, כדי להחליף צבע בצורה מסודרת.
+    // שמות מחלקות העיצוב של הדרגות, כדי להחליף צבע בצורה מסודרת
     const levelClassNames = [
         'level-casual-sipper',
         'level-curious-taster',
@@ -30,12 +31,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         'level-master-of-wine'
     ];
 
+    //  מחזיר את שם מחלקת העיצוב המתאים לדרגה
     const getLevelClass = (level) => {
         return 'level-' + String(level || 'Casual Sipper')
             .toLowerCase()
             .replaceAll(' ', '-');
     };
 
+    //  מעדכן את העיצוב של הדרגה בהתאם לדרגה הנוכחית.
     const applyLevelStyle = (levelEl, level) => {
         if (window.applyWinederLevelStyle) {
             window.applyWinederLevelStyle(levelEl, level);
@@ -63,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => pop.remove(), 1200);
     };
 
-    // יוצר הודעה קטנה על המסך בלי לעצור את השימוש בעמוד.
+    // יוצר הודעה קטנה על המסך בלי לעצור את השימוש בעמוד
     const showGameToast = (title, message, className = '') => {
         const toast = document.createElement('div');
         toast.className = `game-toast ${className}`;
@@ -80,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => toast.remove(), 4500);
     };
 
-    // יוצר קונפטי כאשר המשתמש משלים יעד או מקבל בונוס.
+    // יוצר קונפטי כאשר המשתמש משלים יעד או מקבל בונוס
     const launchConfetti = () => {
         const confetti = document.createElement('div');
         confetti.className = 'confetti-container';
@@ -99,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => confetti.remove(), 4000);
     };
 
-    // חגיגה קצרה כאשר מגיעים לחמש החלקות באותו יום.
+    // יוצר חגיגה קצרה כאשר מגיעים לחמש החלקות באותו יום
     const showDailyGoalCelebration = (bonusPoints) => {
         launchConfetti();
         showPointsPop(bonusPoints);
@@ -110,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
     };
 
+    // מציג הודעה כאשר המשתמש עולה דרגה
     const showLevelUpMessage = (newLevel) => {
         showGameToast(
             'Level Up!',
@@ -154,6 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('dailySwipesCount', stats.dailySwipesCount);
     };
 
+    // אתחול ממשק המשתמש עם הנתונים השמורים ב-localStorage
     updateGamificationUI({
         points: localStorage.getItem('points') || 0,
         streak: localStorage.getItem('streak') || 0,
@@ -161,6 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         dailySwipesCount: localStorage.getItem('dailySwipesCount') || 0
     });
 
+    // דיווח לשרת על החלקה כדי לעדכן את הניקוד, הדרגה והיעד היומי
     const reportSwipe = async () => {
         try {
             const res = await fetch('/swipe', {
@@ -192,6 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    // טוען מהשרת את רשימת היינות להחלקה, רק אלו שעדיין לא נמצאים במרתף של המשתמש
     const loadWinesFromServer = async () => {
         try {
             // מבקשים מהשרת רק יינות שעדיין לא נמצאים במרתף של המשתמש
@@ -210,8 +217,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    // מציג את היין הנוכחי על הכרטיס, או מציג הודעת סיום אם נגמרו היינות
     const renderWine = () => {
-
         if (currentIndex >= winesToShow.length) {
             cardElement.style.display = 'none';
             emptyState.style.display = 'flex';
@@ -238,6 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // מציג את היין הנוכחי על הכרטיס
         const wine = winesToShow[currentIndex];
         imgEl.src = wine.image || '../images/wine_images/default-wine.png';
         imgEl.onerror = function () { this.onerror = null; this.src = '../images/wine_images/default-wine.png'; };
@@ -245,6 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         wineryYearEl.textContent = `${wine.winery} | ${wine.year || ''}`;
     };
 
+    //שומר את היין במרתף של המשתמש
     const saveToCellar = async (wine) => {
         try {
             const response = await fetch('/cellar', {
@@ -262,7 +271,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // טיפול בלחיצה על אהבתי או לא אהבתי, כולל שמירה במרתף ודיווח נקודות.
+    // טיפול בלחיצה על אהבתי או לא אהבתי, כולל שמירה במרתף ודיווח נקודות
     const handleSwipe = async (direction) => {
         if (isSwiping) return;
 
